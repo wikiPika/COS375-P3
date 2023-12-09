@@ -2,6 +2,7 @@
 #include <inttypes.h>
 
 #include <string>
+#include <vector>
 
 // The memory is 64 KB large.
 #define MEMORY_SIZE 0x10000
@@ -19,8 +20,7 @@ static const uint32_t WORD_WIDTH = 8;
 class MemoryStore {
    private:
     uint32_t startAddr;
-    uint32_t numEntries;
-    uint8_t* memArr = nullptr;
+    std::vector<uint8_t> memArr;
 
     int getOrSetValue(bool get, uint32_t address, uint32_t& value, MemEntrySize size);
 

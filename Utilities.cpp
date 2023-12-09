@@ -176,12 +176,6 @@ static void handleImmInst(uint32_t instr, ostream &out_stream) {
     uint8_t rs = (instr >> 21) & 0x1f;
     uint8_t rt = (instr >> 16) & 0x1f;
     uint16_t imm = instr & 0xffff;
-    // Sign extend the immediate...
-    uint32_t seImm = static_cast<uint32_t>(static_cast<int32_t>(static_cast<int16_t>(imm)));
-    uint32_t zeImm = imm;
-
-    int ret = 0;
-    uint32_t value = 0;
 
     string opString = getImmString(opcode);
 

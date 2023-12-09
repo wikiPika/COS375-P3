@@ -218,7 +218,7 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
             regData.registers[rt] = (int32_t(regData.registers[rs]) < int32_t(signExtImm)) ? 1 : 0;
             break;
         case OP_SLTIU:
-            regData.registers[rt] = (regData.registers[rs] < signExtImm) ? 1 : 0;
+            regData.registers[rt] = (regData.registers[rs] < uint32_t(signExtImm)) ? 1 : 0;
             break;
         case OP_SB:
             info.storeAddress = regData.registers[rs] + signExtImm;  // capture store address

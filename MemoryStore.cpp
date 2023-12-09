@@ -10,24 +10,22 @@
 using namespace std;
 
 MemoryStore::MemoryStore(uint32_t startAddr, uint32_t numEntries)
-    : startAddr(startAddr), numEntries(numEntries) {
-    memArr = new uint8_t[numEntries];
+    : startAddr(startAddr) {
+    // fill memory array with 0s
+    memArr.resize(numEntries);
+    std::fill(memArr.begin(), memArr.end(), 0);
 
-    for (uint32_t i = 0; i < numEntries; i++) {
-        memArr[i] = 0;
-    }
     // If we can't initialise memory appropriately, don't return a
     // MemoryStore at all.
     assert((prepareMemory(this) == 0));
 }
 
 MemoryStore::MemoryStore(uint32_t startAddr, uint32_t numEntries, const char *fileName)
-    : startAddr(startAddr), numEntries(numEntries) {
-    memArr = new uint8_t[numEntries];
+    : startAddr(startAddr) {
+    // fill memory array with 0s
+    memArr.resize(numEntries);
+    std::fill(memArr.begin(), memArr.end(), 0);
 
-    for (uint32_t i = 0; i < numEntries; i++) {
-        memArr[i] = 0;
-    }
     // If we can't initialise memory appropriately, don't return a
     // MemoryStore at all.
     assert((prepareMemory(this) == 0));
@@ -59,12 +57,7 @@ int prepareMemory(MemoryStore *mem) {
 }
 
 int MemoryStore::getOrSetValue(bool get, uint32_t address, uint32_t &value, MemEntrySize size) {
-    uint32_t byteSize = (uint32_t)(size);
-
-    if (address < startAddr || address + byteSize >= (startAddr + numEntries)) {
-        cerr << LOG_ERROR << "Address 0x" << hex << address << " is out of range" << endl;
-        return -EINVAL;
-    }
+    uint32_t byteSize = static_cast<uint32_t>(size);
 
     switch (size) {
         case BYTE_SIZE:
@@ -77,23 +70,20 @@ int MemoryStore::getOrSetValue(bool get, uint32_t address, uint32_t &value, MemE
     }
 
     uint32_t relativeAddr = address - startAddr;
-    uint8_t *valPtr = memArr + relativeAddr;
-
-    if (get) {
-        value = 0;
-
-        // The values are stored and loaded byte by byte to combat x86 being little-endian.
-        while (byteSize > 0) {
-            value |= (*valPtr << ((byteSize - 1) * BYTE_SHIFT));
-            valPtr++;
-            byteSize--;
+    try {
+        if (get) {
+            value = 0;
+            for (uint32_t i = 0; i < byteSize; ++i) {
+                value |= (memArr.at(relativeAddr + i) << ((byteSize - 1 - i) * 8));
+            }
+        } else {
+            for (uint32_t i = 0; i < byteSize; ++i) {
+                memArr.at(relativeAddr + i) = (value >> ((byteSize - 1 - i) * 8)) & 0xFF;
+            }
         }
-    } else {
-        while (byteSize > 0) {
-            *valPtr = (value >> ((byteSize - 1) * 8)) & 0xFF;
-            valPtr++;
-            byteSize--;
-        }
+    } catch (const std::out_of_range &e) {
+        cerr << LOG_ERROR << "Access violation at address 0x" << hex << address << endl;
+        return -EINVAL;
     }
 
     return 0;
@@ -136,13 +126,7 @@ int MemoryStore::loadFromFile(const char *fileName) {
 
 int MemoryStore::printMemArray(uint32_t startAddr, uint32_t endAddr, uint32_t entrySize,
                                uint32_t entriesPerRow, std::ostream &out_stream) {
-    // Note that here endAddr isn't printed.
-    if (startAddr > endAddr || startAddr < startAddr || endAddr > (startAddr + numEntries)) {
-        cerr << LOG_ERROR << "Address range 0x" << hex << startAddr << "-0x" << endAddr
-             << " is out of range" << endl;
-        return -EINVAL;
-    }
-
+    // Validate the entry size
     switch (entrySize) {
         case BYTE_SIZE:
         case HALF_SIZE:
@@ -153,32 +137,34 @@ int MemoryStore::printMemArray(uint32_t startAddr, uint32_t endAddr, uint32_t en
             return -EINVAL;
     }
 
-    uint32_t relStart = startAddr - startAddr;
-    uint32_t relEnd = endAddr - startAddr;
+    uint32_t relStart = startAddr - this->startAddr;
+    uint32_t relEnd = endAddr - this->startAddr;
     uint32_t curAddr = startAddr;
 
-    uint8_t *valPtr = memArr + relStart;
-    uint8_t *endPtr = memArr + relEnd;
-
-    while (valPtr < endPtr) {
-        out_stream << "0x" << hex << setfill('0') << setw(WORD_WIDTH) << curAddr << ": ";
-        for (uint32_t i = 0; i < entriesPerRow; i++) {
-            if (valPtr < endPtr) {
-                out_stream << "0x";
-                for (int i = 0; i < (int)(entrySize); i++) {
-                    out_stream << hex << setfill('0') << setw(BYTE_WIDTH) << (uint32_t)(*valPtr);
-                    valPtr++;
+    try {
+        while (relStart < relEnd) {
+            out_stream << "0x" << hex << setfill('0') << setw(WORD_WIDTH) << curAddr << ": ";
+            for (uint32_t i = 0; i < entriesPerRow; i++) {
+                if (relStart < relEnd) {
+                    out_stream << "0x";
+                    for (int j = 0; j < (int)(entrySize); j++) {
+                        out_stream << hex << setfill('0') << setw(BYTE_WIDTH)
+                                   << (uint32_t)(memArr.at(relStart + j));
+                    }
+                    relStart += entrySize;
+                    out_stream << " ";
+                } else {
+                    out_stream << endl;
+                    return 0;
                 }
-                out_stream << " ";
-            } else {
-                // We're done before ending the row.
-                out_stream << endl;
-                return 0;
             }
-        }
 
-        out_stream << endl;
-        curAddr += (uint32_t)(entrySize)*entriesPerRow;
+            out_stream << endl;
+            curAddr += (uint32_t)(entrySize)*entriesPerRow;
+        }
+    } catch (const std::out_of_range &e) {
+        cerr << LOG_ERROR << "Access violation at address 0x" << hex << curAddr << endl;
+        return -EINVAL;
     }
 
     return 0;

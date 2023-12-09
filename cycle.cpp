@@ -34,16 +34,23 @@ Status initSimulator(CacheConfig& iCacheConfig, CacheConfig& dCacheConfig, Memor
 // return SUCCESS if reaching desired cycles.
 // return HALT if the simulator halts on 0xfeedfeed
 Status runCycles(uint32_t cycles) {
-    int count = 0;
+    uint32_t count = 0;
     auto status = SUCCESS;
     PipeState pipeState = {0,};
 
     while (cycles == 0 || count < cycles) {
         Emulator::InstructionInfo info = emulator->executeInstruction();
         pipeState.cycle = cycleCount;  // get the execution cycle count
+        
+        // shuffle pipeline
+        pipeState.wbInstr = pipeState.memInstr;
+        pipeState.memInstr = pipeState.exInstr;
+        pipeState.exInstr = pipeState.idInstr;
+        pipeState.idInstr = pipeState.ifInstr;
         pipeState.ifInstr = info.instruction;
 
         uint32_t cacheDelay = 0;  // initially no delay for cache read/write
+        uint32_t stallDelay = 0;  // for load-use
 
         // handle iCache delay
         cacheDelay += iCache->access(info.address, CACHE_READ) ? 0 : iCache->config.missLatency;
@@ -54,10 +61,70 @@ Status runCycles(uint32_t cycles) {
 
         if (info.isValid && (info.opcode == OP_SB || info.opcode == OP_SH || info.opcode == OP_SW))
             cacheDelay += dCache->access(info.address, CACHE_WRITE) ? 0 : iCache->config.missLatency;
+        
 
-        // This is not accuratly implemented runCycles, please fix this function
-        count += 1 + cacheDelay;
-        cycleCount += 1 + cacheDelay;
+        /**
+         * cases for stall delay:
+         * 
+         * load - op (ex. sub, add) = 1
+         * load - store             = 0 (forwarded)
+         * load - branch            = 2 (load obtains value after MEM, branch needs value after ID)
+         * 
+         * op - op                  = 0 (forwarded)
+         * op - store               = 0 (lines up fine)
+         * op - branch              = 1
+        */
+
+       /**
+        * If current instruction is branch (D dependency):
+        *   If last instruction was op: insert 1
+        *   If last instruction was load: insert 2
+        * If current instruction is op (X dependency):
+        *   If last instruction was load: insert 1
+       */
+        
+        if (isBranch(pipeState.ifInstr))
+        {
+            if (isOp(pipeState.idInstr)) {
+                stallDelay = 2;
+            }
+
+            if (isLoad(pipeState.idInstr)) {
+                stallDelay = 1;
+            }
+        }
+        if (isOp(pipeState.ifInstr)) {
+            if (isLoad(pipeState.idInstr)) {
+                stallDelay = 1;
+            }
+        }
+        
+        // increments din
+        count += 1 + cacheDelay + stallDelay;
+        cycleCount += 1 + cacheDelay + stallDelay;
+
+        // if stall, send a (fes) nop(s) where it's "supposed" to be
+        if (stallDelay > 0) {
+            // reset stallDelay
+            stallDelay = 0;
+
+            // before
+            // USE || DEP || A   || B   || C
+            for (int i = 0; i < stallDelay; i++) {
+                pipeState.wbInstr = pipeState.memInstr;
+                pipeState.memInstr = pipeState.exInstr;
+                pipeState.exInstr = pipeState.idInstr;
+                pipeState.idInstr = 0;
+            }
+            
+            // if single stall
+            // if     id     x      mem    wb
+            // USE || NOP || DEP || A   || B
+            
+            // or double stall
+            // if     id     x      mem   wb
+            // USE || NOP || NOP || DEP || A
+        }
 
         if (info.isHalt) {
             status = HALT;
