@@ -3,7 +3,11 @@
 
 #include <iostream>
 
+#include <vector>
+
 #include "Utilities.h"
+
+using namespace std;
 
 struct CacheConfig {
     // Cache size in bytes.
@@ -29,6 +33,11 @@ class Cache {
    private:
     /**TODO[students] include other states, e.g. associativity, cache tables */
     uint32_t hits, misses;
+
+    uint32_t numSets; // number of rows in cache (numSets = cacheSize/ways/blockSize)
+    vector<vector<int>> tags; // the tags in the cache currently
+    vector<vector<int>> order; // for each row, stores 1, 2, 3 ... n (the order of most recent to least recent)
+    vector<vector<bool>> valid; // whether each cell is valid
 
    public:
     CacheConfig config;

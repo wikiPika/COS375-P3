@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <random>
+#include <cmath>
 
 #include "Utilities.h"
 
@@ -18,15 +19,114 @@ static std::mt19937 generator(42);  // Fixed seed for deterministic results
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
 // Constructor definition
-Cache::Cache(CacheConfig configParam, CacheDataType cacheType) : config(configParam) {
+Cache::Cache(CacheConfig configParam, CacheDataType cacheType) : config(configParam), hits(0), misses(0) {
+    numSets = config.cacheSize / config.ways / config.blockSize;
+
+    tags.resize(numSets);
+    for (auto &row : tags) {
+        row.resize(config.ways);
+    }
+
+    order.resize(numSets);
+    for (auto &row : order) {
+        row.resize(config.ways);
+    }
+
+    valid.resize(numSets);
+    for (auto &row : valid) {
+        row.resize(config.ways, false);
+    }
+
+
+
+
     // Here you can initialize other cache-specific attributes
     // For instance, if you had cache tables or other structures, initialize them here
 }
 
+// Counts Bits given power of two, n
+int countBitsForPowerOfTwo(uint32_t n) {
+    int count = 0;
+    while (n > 1) {
+        n = n >> 1;
+        count++;
+    }
+    return count;
+}
+
 // Access method definition
 bool Cache::access(uint32_t address, CacheOperation readWrite) {
+    uint32_t numBlockOffsetBits = countBitsForPowerOfTwo(config.blockSize);
+    uint32_t numIndexBits = countBitsForPowerOfTwo(numSets);
+    uint32_t numTagBits = 32 - numBlockOffsetBits - numIndexBits;
+
+
+    uint32_t blockOffsetMask = (1 << numBlockOffsetBits) - 1;
+    uint32_t indexMask = (1 << numIndexBits) - 1;
+
+    uint32_t blockOffset = address & blockOffsetMask;
+    uint32_t index = (address >> numBlockOffsetBits) & indexMask;
+    uint32_t tag = address >> (numBlockOffsetBits + numIndexBits);
+
+
+    bool hit = false;
+
+    // if hit
+    for (int i = 0; i < config.ways; i++) {
+        if (valid[index][i] && tags[index][i] == tag) {
+            hit = true;
+            // update order
+            for (int j = 0; j < config.ways; j++) {
+                if (valid[index][j] && order[index][j] < order[index][i]) {
+                    order[index][j]++;
+                }
+            }
+            order[index][i] = 1;
+        }
+    }
+    // if miss
+    if (hit == false) {
+        int numValid = 0;
+        for (int i = 0; i < config.ways; i++) {
+            if (valid[index][i]) {
+                numValid++;
+            }
+        }
+
+        // if do not need to evict
+        if (numValid < config.ways) {
+            for (int i = 0; i < config.ways; i++) {
+                if (valid[index][i]) {
+                    order[index][i]++;
+                }
+            }
+            for (int i = 0; i < config.ways; i++) {
+                if (!valid[index][i]) {
+                    tags[index][i] = tag;
+                    order[index][i] = 1;
+                    valid[index][i] = true;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < config.ways; i++) {
+                if (order[index][i] == config.ways) {
+                    tags[index][i] = tag;
+                }
+            }
+            // reorder
+            for (int j = 0; j < config.ways; j++) {
+                order[index][j] = order[index][j] % config.ways + 1;
+            }
+        }
+    }
+
+
+
     // For simplicity, we're using a random boolean to simulate cache hit/miss
-    bool hit = distribution(generator) < 0.20;  // random 20% hit for a strange cache
+    // bool hit = distribution(generator) < 0.20;  // random 20% hit for a strange cache
     hits += hit;
     misses += !hit;
     return hit;
