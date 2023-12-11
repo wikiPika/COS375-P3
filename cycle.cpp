@@ -1,22 +1,24 @@
-#include "cycle.h"
-
 #include <iostream>
 #include <memory>
 #include <string>
+#include <deque>
 
 #include "Utilities.h"
 #include "cache.h"
+#include "cycle.h"
 #include "emulator.h"
 
 static Emulator* emulator = nullptr;
 static Cache* iCache = nullptr;
 static Cache* dCache = nullptr;
 static std::string output;
-static uint32_t cycleCount;
 
-static uint32_t icacheDelay;
-static uint32_t dcacheDelay;
-static uint32_t stallDelay;
+static uint32_t cycleCount;
+static uint32_t icacheDelay = 0; // cycle delays for icache misses
+static uint32_t dcacheDelay = 0; // cycle delays for dcache misses
+static uint32_t stallDelay = 0; // cycle delays for stalls
+
+static std::deque<int> memAddresses;
 
 /**TODO: Implement the pipeline emulation for the MIPS machine in this section.
  * A basic template is provided below that doesn't account for all stalls.
@@ -43,9 +45,73 @@ Status runCycles(uint32_t cycles) {
     PipeState pipeState = {0,};
 
     while (cycles == 0 || count < cycles) {
+        if (stallDelay > 0) {
+            stallDelay--;
+
+            // insert nop between USE operation and DEP operation
+            // before: USE | DEP | A   | B   | C 
+            // after:  USE | NOP | DEP | A   | B
+            pipeState.wbInstr = pipeState.memInstr;
+            pipeState.memInstr = pipeState.exInstr;
+            pipeState.exInstr = pipeState.idInstr;
+            pipeState.idInstr = 0;
+
+            count++;
+            cycleCount++;
+        }
+
+        if (icacheDelay > 0) {
+            icacheDelay--;
+
+            // insert nop before USE operation
+            // (the information has to get to the op before it "executes")
+            // before: USE | A   | B   | C   | D 
+            // after:  USE | NOP | A   | B   | C
+            pipeState.wbInstr = pipeState.memInstr;
+            pipeState.memInstr = pipeState.exInstr;
+            pipeState.exInstr = pipeState.idInstr;
+            pipeState.idInstr = 0;
+
+            count++;
+            cycleCount++;
+        }
+
+        if (dcacheDelay > 0) {
+            dcacheDelay--;
+
+            // insert nop before USE operation
+            // (the information has to get to the op before it "executes")
+            // before: USE | A   | B   | C   | D 
+            // after:  USE | NOP | A   | B   | C
+            pipeState.wbInstr = pipeState.memInstr;
+            pipeState.memInstr = pipeState.exInstr;
+            pipeState.exInstr = pipeState.idInstr;
+            pipeState.idInstr = 0;
+            
+            count++;
+            cycleCount++;
+        }
+
         Emulator::InstructionInfo info = emulator->executeInstruction();
         pipeState.cycle = cycleCount;  // get the execution cycle count
+
+        // shuffle mem load/store addresses
+
+        if (info.isValid && (info.opcode == OP_LBU || info.opcode == OP_LHU || info.opcode == OP_LW)) { // load
+            memAddresses.push_front(info.loadAddress);
+        }
+        else if (info.isValid && (info.opcode == OP_SB || info.opcode == OP_SH || info.opcode == OP_SW)) { // store
+            memAddresses.push_front(info.storeAddress);
+        }
+        else { // not load or store
+            memAddresses.push_front(-1);
+        }
+        if (memAddresses.size() > 5) {
+            memAddresses.pop_back();
+        }
+
         
+
         // shuffle pipeline
         pipeState.wbInstr = pipeState.memInstr;
         pipeState.memInstr = pipeState.exInstr;
@@ -53,18 +119,17 @@ Status runCycles(uint32_t cycles) {
         pipeState.idInstr = pipeState.ifInstr;
         pipeState.ifInstr = info.instruction;
 
-        uint32_t cacheDelay = 0;  // initially no delay for cache read/write
-        uint32_t stallDelay = 0;  // for load-use
-
         // handle iCache delay
-        cacheDelay += iCache->access(info.address, CACHE_READ) ? 0 : iCache->config.missLatency;
+        icacheDelay += iCache->access(info.address, CACHE_READ) ? 0 : iCache->config.missLatency;
 
         // handle dCache delays (in a multicycle style)
-        if (info.isValid && (info.opcode == OP_LBU || info.opcode == OP_LHU || info.opcode == OP_LW))
-            cacheDelay += dCache->access(info.address, CACHE_READ) ? 0 : iCache->config.missLatency;
-
-        if (info.isValid && (info.opcode == OP_SB || info.opcode == OP_SH || info.opcode == OP_SW))
-            cacheDelay += dCache->access(info.address, CACHE_WRITE) ? 0 : iCache->config.missLatency;
+        if (isLoad(pipeState.memInstr) && memAddresses.size() >= 4) {
+            dcacheDelay += dCache->access(memAddresses[3], CACHE_READ) ? 0 : dCache->config.missLatency;
+        }
+        
+        if (isStore(pipeState.memInstr) && memAddresses.size() >= 4) {
+            dcacheDelay += dCache->access(memAddresses[3], CACHE_WRITE) ? 0 : dCache->config.missLatency;
+        }
         
 
         /**
@@ -72,11 +137,13 @@ Status runCycles(uint32_t cycles) {
          * 
          * load - op (ex. sub, add) = 1
          * load - store             = 0 (forwarded)
-         * load - branch            = 2 (load obtains value after MEM, branch needs value after ID)
+         * load - branch            = 2 (load obtains value after MEM, branch needs value during ID)
          * 
          * op - op                  = 0 (forwarded)
          * op - store               = 0 (lines up fine)
          * op - branch              = 1
+         * 
+         * check for dependency at each step
         */
 
        /**
@@ -87,48 +154,80 @@ Status runCycles(uint32_t cycles) {
         *   If last instruction was load: insert 1
        */
         
+
         if (isBranch(pipeState.ifInstr))
         {
             if (isOp(pipeState.idInstr)) {
-                stallDelay = 2;
+                // op-branch
+                // note: all immediates use RT as target
+                //           all r-type use RD as target
+                //    branch operations use RS and RT
+
+                // check if last op target is branch RS or branch RT
+
+                uint32_t target;
+                uint32_t br_a;
+                uint32_t br_b;
+
+                if (isImm(pipeState.idInstr)) {
+                    target = rt(pipeState.idInstr);
+                } else {
+                    target = rd(pipeState.idInstr);
+                }
+
+                br_a = rs(pipeState.ifInstr);
+                br_b = rt(pipeState.ifInstr);
+
+                if (br_a == target || br_b == target) {
+                    stallDelay = 1;
+                }
             }
 
             if (isLoad(pipeState.idInstr)) {
-                stallDelay = 1;
+                // load-branch
+                // if branch uses the load target we must stall
+                // load target is always rt
+                uint32_t target = rt(pipeState.idInstr);
+                uint32_t br_a;
+                uint32_t br_b;
+
+                br_a = rs(pipeState.ifInstr);
+                br_b = rt(pipeState.ifInstr);
+
+                if (br_a == target || br_b == target) {
+                    stallDelay = 1;
+                }
             }
         }
+
         if (isOp(pipeState.ifInstr)) {
             if (isLoad(pipeState.idInstr)) {
-                stallDelay = 1;
+                // load-op
+                // if op uses the load target we must stall
+                // must discriminate between imm and r again (ugh)
+                uint32_t target = rt(pipeState.idInstr);
+                uint32_t op_a;
+                uint32_t op_b;
+                uint32_t imm = isImm(pipeState.ifInstr);
+
+                // i-type operations use RS as argument
+                // r-type operations use RS and RT as argument
+                op_a = rs(pipeState.ifInstr);
+
+                if (!imm) {
+                    op_b = rt(pipeState.ifInstr);
+                }
+
+                // if current op uses results from previous 
+                if ((imm && op_a == target) || (!imm && (op_a == target || op_b == target))) {
+                    stallDelay = 1;
+                }
             }
         }
         
-        // increments din
-        count += 1 + cacheDelay + stallDelay;
-        cycleCount += 1 + cacheDelay + stallDelay;
-
-        // if stall, send a (fes) nop(s) where it's "supposed" to be
-        if (stallDelay > 0) {
-            // reset stallDelay
-            stallDelay = 0;
-
-            // before
-            // USE || DEP || A   || B   || C
-            for (int i = 0; i < stallDelay; i++) {
-                pipeState.wbInstr = pipeState.memInstr;
-                pipeState.memInstr = pipeState.exInstr;
-                pipeState.exInstr = pipeState.idInstr;
-                pipeState.idInstr = 0;
-            }
-            
-            // if single stall
-            // if     id     x      mem    wb
-            // USE || NOP || DEP || A   || B
-            
-            // or double stall
-            // if     id     x      mem   wb
-            // USE || NOP || NOP || DEP || A
-        }
+        // increments count and global count at end of operations
+        count++;
+        cycleCount++;
 
         if (info.isHalt) {
             status = HALT;
@@ -158,4 +257,63 @@ Status finalizeSimulator() {
     SimulationStats stats{ emulator->getDin(), cycleCount, };  // TODO incomplete implementation
     dumpSimStats(stats, output);
     return SUCCESS;
+}
+
+uint32_t extract(uint32_t instruction, int start, int end) {
+  int bitsToExtract = start - end + 1;
+  uint32_t mask = (1 << bitsToExtract) - 1;
+  uint32_t clipped = instruction >> end;
+  return clipped & mask;
+}
+
+uint32_t rs(uint32_t target) {
+  return extract(target, 25, 21);
+}
+
+uint32_t rt(uint32_t target) {
+  return extract(target, 20, 16);
+}
+
+uint32_t rd(uint32_t target) {
+  return extract(target, 15, 11);
+}
+
+uint32_t opcode(uint32_t target) {
+  return extract(target, 31, 26);
+}
+
+uint32_t funct(uint32_t target) {
+  return extract(target, 5, 0);
+}
+
+// minus LUI because that's... immediate
+bool isLoad(uint32_t target) {
+  uint32_t op = opcode(target);
+  return op == OP_LBU || op == OP_LHU || op == OP_LW;
+}
+
+bool isBranch(uint32_t target) {
+  uint32_t op = opcode(target);
+  return op == OP_BEQ || op == OP_BNE || op == OP_BLEZ || op == OP_BGTZ;
+}
+
+bool isStore(uint32_t target) {
+  uint32_t op = opcode(target);
+  return op == OP_SB || op == OP_SH || op == OP_SW;
+}
+
+bool isOp(uint32_t target) {
+  return !isLoad(target) && !isBranch(target) && !isStore(target);
+}
+
+bool isImm(uint32_t target) {
+  uint32_t op = opcode(target);
+  uint32_t fun = funct(target);
+
+  // note that all r-type functs are op
+  // except JR (jump r)
+  
+  // is R type
+  // is not Jump Register
+  return isOp(target) && op == OP_ZERO && fun != FUN_JR;
 }

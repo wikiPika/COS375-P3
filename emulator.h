@@ -76,7 +76,7 @@ class Emulator {
     Emulator();
     ~Emulator();
 
-struct InstructionInfo {
+    struct InstructionInfo {
         uint32_t pc = 0;             // pc
         uint32_t nextPC = 0;         // next pc after this instruction
         bool     isHalt = false;     // is this 0xfeedfeed

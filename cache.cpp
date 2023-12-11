@@ -58,13 +58,12 @@ int countBitsForPowerOfTwo(uint32_t n) {
 bool Cache::access(uint32_t address, CacheOperation readWrite) {
     uint32_t numBlockOffsetBits = countBitsForPowerOfTwo(config.blockSize);
     uint32_t numIndexBits = countBitsForPowerOfTwo(numSets);
-    uint32_t numTagBits = 32 - numBlockOffsetBits - numIndexBits;
+    // uint32_t numTagBits = 32 - numBlockOffsetBits - numIndexBits;
 
-
-    uint32_t blockOffsetMask = (1 << numBlockOffsetBits) - 1;
+    // uint32_t blockOffsetMask = (1 << numBlockOffsetBits) - 1;
     uint32_t indexMask = (1 << numIndexBits) - 1;
 
-    uint32_t blockOffset = address & blockOffsetMask;
+    // uint32_t blockOffset = address & blockOffsetMask;
     uint32_t index = (address >> numBlockOffsetBits) & indexMask;
     uint32_t tag = address >> (numBlockOffsetBits + numIndexBits);
 
@@ -72,11 +71,11 @@ bool Cache::access(uint32_t address, CacheOperation readWrite) {
     bool hit = false;
 
     // if hit
-    for (int i = 0; i < config.ways; i++) {
+    for (uint32_t i = 0; i < config.ways; i++) {
         if (valid[index][i] && tags[index][i] == tag) {
             hit = true;
             // update order
-            for (int j = 0; j < config.ways; j++) {
+            for (uint32_t j = 0; j < config.ways; j++) {
                 if (valid[index][j] && order[index][j] < order[index][i]) {
                     order[index][j]++;
                 }
@@ -86,8 +85,8 @@ bool Cache::access(uint32_t address, CacheOperation readWrite) {
     }
     // if miss
     if (hit == false) {
-        int numValid = 0;
-        for (int i = 0; i < config.ways; i++) {
+        uint32_t numValid = 0;
+        for (uint32_t i = 0; i < config.ways; i++) {
             if (valid[index][i]) {
                 numValid++;
             }
@@ -95,12 +94,12 @@ bool Cache::access(uint32_t address, CacheOperation readWrite) {
 
         // if do not need to evict
         if (numValid < config.ways) {
-            for (int i = 0; i < config.ways; i++) {
+            for (uint32_t i = 0; i < config.ways; i++) {
                 if (valid[index][i]) {
                     order[index][i]++;
                 }
             }
-            for (int i = 0; i < config.ways; i++) {
+            for (uint32_t i = 0; i < config.ways; i++) {
                 if (!valid[index][i]) {
                     tags[index][i] = tag;
                     order[index][i] = 1;
@@ -111,13 +110,13 @@ bool Cache::access(uint32_t address, CacheOperation readWrite) {
         }
         else
         {
-            for (int i = 0; i < config.ways; i++) {
+            for (uint32_t i = 0; i < config.ways; i++) {
                 if (order[index][i] == config.ways) {
                     tags[index][i] = tag;
                 }
             }
             // reorder
-            for (int j = 0; j < config.ways; j++) {
+            for (uint32_t j = 0; j < config.ways; j++) {
                 order[index][j] = order[index][j] % config.ways + 1;
             }
         }
