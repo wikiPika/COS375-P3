@@ -14,6 +14,10 @@ static Cache* dCache = nullptr;
 static std::string output;
 static uint32_t cycleCount;
 
+static uint32_t icacheDelay;
+static uint32_t dcacheDelay;
+static uint32_t stallDelay;
+
 /**TODO: Implement the pipeline emulation for the MIPS machine in this section.
  * A basic template is provided below that doesn't account for all stalls.
  * Your task is to enhance it to correctly emulate the machine's running time, considering stalls.
