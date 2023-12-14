@@ -1,0 +1,43 @@
+
+./test/stall.elf:     file format elf32-tradbigmips
+
+
+Disassembly of section .text:
+
+00000000 <main>:
+   0:	3c080000 	lui	t0,0x0
+   4:	25080080 	addiu	t0,t0,128
+   8:	8d090000 	lw	t1,0(t0)
+   c:	00000000 	nop
+  10:	ad090004 	sw	t1,4(t0)
+  14:	8d0f0008 	lw	t7,8(t0)
+  18:	00000000 	nop
+  1c:	ade90004 	sw	t1,4(t7)
+  20:	8d090000 	lw	t1,0(t0)
+  24:	00000000 	nop
+  28:	01294820 	add	t1,t1,t1
+  2c:	ad09000c 	sw	t1,12(t0)
+  30:	95090000 	lhu	t1,0(t0)
+  34:	00000000 	nop
+  38:	352a0000 	ori	t2,t1,0x0
+	...
+  44:	95090000 	lhu	t1,0(t0)
+  48:	35490000 	ori	t1,t2,0x0
+  4c:	3c080000 	lui	t0,0x0
+  50:	250800a8 	addiu	t0,t0,168
+	...
+  64:	91090000 	lbu	t1,0(t0)
+  68:	8d090000 	lw	t1,0(t0)
+  6c:	00000000 	nop
+  70:	95280000 	lhu	t0,0(t1)
+  74:	00000000 	nop
+  78:	feedfeed 	0xfeedfeed
+  7c:	00000000 	nop
+
+00000080 <DataStore>:
+  80:	00abcdef 	0xabcdef
+	...
+
+000000a8 <DataStore2>:
+  a8:	00000100 	sll	zero,zero,0x4
+  ac:	00000000 	nop

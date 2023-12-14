@@ -13,18 +13,22 @@ enum OP_IDS {
     OP_ADDI  = 0x8,  // addi
     OP_ADDIU = 0x9,  // addiu
     OP_ANDI  = 0xc,  // andi
-    OP_BEQ   = 0x4,  // beq
-    OP_BNE   = 0x5,  // bne
-    OP_LBU   = 0x24, // lbu
-    OP_LHU   = 0x25, // lhu
-    OP_LUI   = 0xf,  // lui
-    OP_LW    = 0x23, // lw
     OP_ORI   = 0xd,  // ori
     OP_SLTI  = 0xa,  // slti
     OP_SLTIU = 0xb,  // sltiu
+
+    OP_LUI   = 0xf,  // lui
+
+    OP_LBU   = 0x24, // lbu
+    OP_LHU   = 0x25, // lhu
+    OP_LW    = 0x23, // lw
+
     OP_SB    = 0x28, // sb
     OP_SH    = 0x29, // sh
     OP_SW    = 0x2b, // sw
+
+    OP_BEQ   = 0x4,  // beq
+    OP_BNE   = 0x5,  // bne
     OP_BLEZ  = 0x6,  // blez
     OP_BGTZ  = 0x7,  // bgtz
     // J-type opcodes...

@@ -1,0 +1,111 @@
+
+./test/tests.elf:     file format elf32-tradbigmips
+
+
+Disassembly of section .text:
+
+00000000 <main>:
+   0:	24180180 	li	t8,384
+   4:	24080004 	li	t0,4
+   8:	24090005 	li	t1,5
+   c:	0c000057 	jal	15c <output>
+  10:	0109c820 	add	t9,t0,t1
+  14:	212a0003 	addi	t2,t1,3
+  18:	0c000057 	jal	15c <output>
+  1c:	21590000 	addi	t9,t2,0
+  20:	24080003 	li	t0,3
+  24:	24090002 	li	t1,2
+  28:	0c000057 	jal	15c <output>
+  2c:	0109c824 	and	t9,t0,t1
+  30:	0c000057 	jal	15c <output>
+  34:	31190002 	andi	t9,t0,0x2
+  38:	24080004 	li	t0,4
+  3c:	24090007 	li	t1,7
+  40:	0c000057 	jal	15c <output>
+  44:	0109c827 	nor	t9,t0,t1
+  48:	24080009 	li	t0,9
+  4c:	24090006 	li	t1,6
+  50:	0c000057 	jal	15c <output>
+  54:	0109c825 	or	t9,t0,t1
+  58:	0c000057 	jal	15c <output>
+  5c:	35190006 	ori	t9,t0,0x6
+  60:	24080003 	li	t0,3
+  64:	0c000057 	jal	15c <output>
+  68:	0008c8c0 	sll	t9,t0,0x3
+  6c:	24080010 	li	t0,16
+  70:	0c000057 	jal	15c <output>
+  74:	0008c8c2 	srl	t9,t0,0x3
+  78:	2408000b 	li	t0,11
+  7c:	24090008 	li	t1,8
+  80:	0c000057 	jal	15c <output>
+  84:	0109c822 	sub	t9,t0,t1
+  88:	0c000057 	jal	15c <output>
+  8c:	00000000 	nop
+  90:	0c000057 	jal	15c <output>
+  94:	00000000 	nop
+  98:	11090003 	beq	t0,t1,a8 <breq>
+  9c:	00000000 	nop
+  a0:	15090004 	bne	t0,t1,b4 <brne>
+  a4:	00000000 	nop
+
+000000a8 <breq>:
+  a8:	3c190003 	lui	t9,0x3
+  ac:	0c000057 	jal	15c <output>
+  b0:	373940dd 	ori	t9,t9,0x40dd
+
+000000b4 <brne>:
+  b4:	0c000057 	jal	15c <output>
+  b8:	24190020 	li	t9,32
+  bc:	2408fffd 	li	t0,-3
+  c0:	1d000003 	bgtz	t0,d0 <brgtz>
+  c4:	00000000 	nop
+  c8:	19000004 	blez	t0,dc <brlez>
+  cc:	00000000 	nop
+
+000000d0 <brgtz>:
+  d0:	3c190003 	lui	t9,0x3
+  d4:	0c000057 	jal	15c <output>
+  d8:	373940dd 	ori	t9,t9,0x40dd
+
+000000dc <brlez>:
+  dc:	0c000057 	jal	15c <output>
+  e0:	24190040 	li	t9,64
+  e4:	3408ffff 	li	t0,0xffff
+  e8:	00084400 	sll	t0,t0,0x10
+  ec:	3409ffff 	li	t1,0xffff
+  f0:	01094020 	add	t0,t0,t1
+  f4:	24090000 	li	t1,0
+  f8:	90190000 	lbu	t9,0(zero)
+  fc:	0c000057 	jal	15c <output>
+ 100:	00000000 	nop
+ 104:	94190000 	lhu	t9,0(zero)
+ 108:	0c000057 	jal	15c <output>
+ 10c:	00000000 	nop
+ 110:	0c000057 	jal	15c <output>
+ 114:	3c19007b 	lui	t9,0x7b
+ 118:	24080004 	li	t0,4
+ 11c:	24090003 	li	t1,3
+ 120:	0c000057 	jal	15c <output>
+ 124:	0109c82a 	slt	t9,t0,t1
+ 128:	0c000057 	jal	15c <output>
+ 12c:	29190008 	slti	t9,t0,8
+ 130:	3408ffff 	li	t0,0xffff
+ 134:	00084400 	sll	t0,t0,0x10
+ 138:	3409ffff 	li	t1,0xffff
+ 13c:	01094020 	add	t0,t0,t1
+ 140:	0c000057 	jal	15c <output>
+ 144:	21190000 	addi	t9,t0,0
+ 148:	a3080000 	sb	t0,0(t8)
+ 14c:	23180004 	addi	t8,t8,4
+ 150:	a7080000 	sh	t0,0(t8)
+ 154:	0800005b 	j	16c <end>
+ 158:	23180004 	addi	t8,t8,4
+
+0000015c <output>:
+ 15c:	af190000 	sw	t9,0(t8)
+ 160:	23180004 	addi	t8,t8,4
+ 164:	03e00008 	jr	ra
+ 168:	24190000 	li	t9,0
+
+0000016c <end>:
+ 16c:	feedfeed 	0xfeedfeed

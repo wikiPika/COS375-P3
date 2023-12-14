@@ -87,9 +87,6 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
     int32_t signExtImm = signExt(immediate);
     uint32_t zeroExtImm = immediate;
 
-    int32_t a = regData.registers[rs];
-    uint32_t b = regData.registers[rt];
-
     uint32_t branchAddr = signExtImm << 2;
     uint32_t jumpAddr = (PC & 0xf0000000) ^ (address << 2);  // assumes PC += 4 just happened
 
@@ -107,10 +104,18 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
     info.branchAddr = branchAddr;
     info.jumpAddr = jumpAddr;
 
+    int32_t a, b;
+
     switch (opcode) {
         case OP_ZERO:  // R-type instruction
             switch (funct) {
                 case FUN_ADD:
+                    a = regData.registers[rs];
+                    b = regData.registers[rt];
+                    cout << a << endl;
+                    cout << b << endl;
+                    cout << (a + b) << endl;
+                    cout << ((a > 0 && b > 0 && a + b < 0) || (a < 0 && b < 0 && a + b > 0)) << endl;
                     if(((a >= 0) && (b >= 0) && (a+b < 0)) || ((a < 0) && (b < 0) && (a+b >= 0))){
                         info.isOverflow = true;
                         PC = 0x8000;
@@ -153,6 +158,12 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
                     regData.registers[rd] = regData.registers[rs] - regData.registers[rt];
                     break;
                 case FUN_SUBU:
+                    a = regData.registers[rs];
+                    b = regData.registers[rt];
+                    cout << a << endl;
+                    cout << b << endl;
+                    cout << (a + b) << endl;
+                    cout << ((a > 0 && b > 0 && a + b < 0) || (a < 0 && b < 0 && a + b > 0)) << endl;
                     if(((a >= 0) && (b < 0) && (a-b < 0)) || ((a < 0) && (b >= 0) && (a-b >= 0))){
                         info.isOverflow = true;
                         PC = 0x8000;
@@ -169,6 +180,12 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
             break;
 
         case OP_ADDI:
+            a = regData.registers[rs];
+            b = signExtImm;
+            cout << a << endl;
+            cout << b << endl;
+            cout << (a + b) << endl;
+            cout << ((a > 0 && b > 0 && a + b < 0) || (a < 0 && b < 0 && a + b > 0)) << endl;
             if(((a >= 0) && (b >= 0) && (a+b < 0)) || ((a < 0) && (b < 0) && (a+b >= 0))){
                 info.isOverflow = true;
                 PC = 0x8000;
@@ -261,6 +278,7 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
             break;
         default:
             std::cerr << LOG_ERROR << "Illegal operation..." << std::endl;
+            PC = 0x8000;
             info.isValid = false;
     }
     return info;  // return the InstructionInfo struct of the instruction just executed

@@ -19,7 +19,7 @@ static std::mt19937 generator(42);  // Fixed seed for deterministic results
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
 // Constructor definition
-Cache::Cache(CacheConfig configParam, CacheDataType cacheType) : config(configParam), hits(0), misses(0) {
+Cache::Cache(CacheConfig configParam, CacheDataType cacheType) : hits(0), misses(0), config(configParam) {
     numSets = config.cacheSize / config.ways / config.blockSize;
 
     tags.resize(numSets);
@@ -119,9 +119,6 @@ bool Cache::access(uint32_t address, CacheOperation readWrite) {
             }
         }
     }
-
-    // For simplicity, we're using a random boolean to simulate cache hit/miss
-    // bool hit = distribution(generator) < 0.20;  // random 20% hit for a strange cache
     hits += hit;
     misses += !hit;
     return hit;
@@ -140,6 +137,14 @@ Status Cache::dump(const std::string& base_output_name) {
         cache_out << "Block Size: " << config.blockSize << " bytes" << std::endl;
         cache_out << "Ways: " << (config.ways == 1) << std::endl;
         cache_out << "Miss Latency: " << config.missLatency << " cycles" << std::endl;
+        cache_out << endl;
+        for (auto v : valid) {
+            for (auto c : v) {
+                cache_out << c << " ";
+            }
+            cache_out << endl;
+        }
+        cache_out << endl;
         cache_out << "---------------------" << endl;
         cache_out << "End Register Values" << endl;
         cache_out << "---------------------" << endl;

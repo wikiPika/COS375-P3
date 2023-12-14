@@ -1,0 +1,23 @@
+
+./test/illegal.elf:     file format elf32-tradbigmips
+
+
+Disassembly of section .text:
+
+00000000 <.text>:
+   0:	240b0002 	li	t3,2
+   4:	240cfeed 	li	t4,-275
+   8:	240d200c 	li	t5,8204
+   c:	240e0005 	li	t6,5
+  10:	3c010001 	lui	at,0x1
+  14:	a42d8000 	sh	t5,-32768(at)
+  18:	3c010001 	lui	at,0x1
+  1c:	a42e8002 	sh	t6,-32766(at)
+  20:	3c010001 	lui	at,0x1
+  24:	a42c8004 	sh	t4,-32764(at)
+  28:	3c010001 	lui	at,0x1
+  2c:	a42c8006 	sh	t4,-32762(at)
+  30:	c00a4002 	ll	t2,16386(zero)
+  34:	240f0007 	li	t7,7
+  38:	feedfeed 	sdc3	$13,-275(s7)
+  3c:	00000000 	nop

@@ -1,0 +1,43 @@
+Cycle:        0	|| addiu $t3, $zero, 0x2   | nop                     | nop                     | nop                     | nop                     |
+Cycle:        1	|| addiu $t3, $zero, 0x2   | nop                     | nop                     | nop                     | nop                     |
+Cycle:        2	|| addiu $t3, $zero, 0x2   | nop                     | nop                     | nop                     | nop                     |
+Cycle:        3	|| addiu $t3, $zero, 0x2   | nop                     | nop                     | nop                     | nop                     |
+Cycle:        4	|| addiu $t3, $zero, 0x2   | nop                     | nop                     | nop                     | nop                     |
+Cycle:        5	|| addiu $t3, $zero, 0x2   | nop                     | nop                     | nop                     | nop                     |
+Cycle:        6	|| addiu $t4, $zero, 0xfeed | addiu $t3, $zero, 0x2   | nop                     | nop                     | nop                     |
+Cycle:        7	|| addiu $t5, $zero, 0x200c | addiu $t4, $zero, 0xfeed | addiu $t3, $zero, 0x2   | nop                     | nop                     |
+Cycle:        8	|| addiu $t6, $zero, 0x5   | addiu $t5, $zero, 0x200c | addiu $t4, $zero, 0xfeed | addiu $t3, $zero, 0x2   | nop                     |
+Cycle:        9	|| lui $at, 0x1            | addiu $t6, $zero, 0x5   | addiu $t5, $zero, 0x200c | addiu $t4, $zero, 0xfeed | addiu $t3, $zero, 0x2   |
+Cycle:       10	|| lui $at, 0x1            | nop                     | addiu $t6, $zero, 0x5   | addiu $t5, $zero, 0x200c | addiu $t4, $zero, 0xfeed |
+Cycle:       11	|| lui $at, 0x1            | nop                     | nop                     | addiu $t6, $zero, 0x5   | addiu $t5, $zero, 0x200c |
+Cycle:       12	|| lui $at, 0x1            | nop                     | nop                     | nop                     | addiu $t6, $zero, 0x5   |
+Cycle:       13	|| lui $at, 0x1            | nop                     | nop                     | nop                     | nop                     |
+Cycle:       14	|| lui $at, 0x1            | nop                     | nop                     | nop                     | nop                     |
+Cycle:       15	|| sh $t5, -32768($at)     | lui $at, 0x1            | nop                     | nop                     | nop                     |
+Cycle:       16	|| lui $at, 0x1            | sh $t5, -32768($at)     | lui $at, 0x1            | nop                     | nop                     |
+Cycle:       17	|| sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | lui $at, 0x1            | nop                     |
+Cycle:       18	|| lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | lui $at, 0x1            |
+Cycle:       19	|| lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | nop                     |
+Cycle:       20	|| lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | nop                     |
+Cycle:       21	|| lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | nop                     |
+Cycle:       22	|| lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | nop                     |
+Cycle:       23	|| lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | nop                     |
+Cycle:       24	|| lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | nop                     |
+Cycle:       25	|| lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | nop                     |
+Cycle:       26	|| lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     | nop                     |
+Cycle:       27	|| sh $t4, -32764($at)     | lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            | sh $t5, -32768($at)     |
+Cycle:       28	|| lui $at, 0x1            | sh $t4, -32764($at)     | lui $at, 0x1            | sh $t6, -32766($at)     | lui $at, 0x1            |
+Cycle:       29	|| sh $t4, -32762($at)     | lui $at, 0x1            | sh $t4, -32764($at)     | lui $at, 0x1            | sh $t6, -32766($at)     |
+Cycle:       30	|| nop                     | sh $t4, -32762($at)     | lui $at, 0x1            | sh $t4, -32764($at)     | lui $at, 0x1            |
+Cycle:       31	|| nop                     | nop                     | sh $t4, -32762($at)     | lui $at, 0x1            | sh $t4, -32764($at)     |
+Cycle:       32	|| addi $t4, $zero, 0x5    | nop                     | nop                     | sh $t4, -32762($at)     | lui $at, 0x1            |
+Cycle:       33	|| addi $t4, $zero, 0x5    | nop                     | nop                     | nop                     | sh $t4, -32762($at)     |
+Cycle:       34	|| addi $t4, $zero, 0x5    | nop                     | nop                     | nop                     | nop                     |
+Cycle:       35	|| addi $t4, $zero, 0x5    | nop                     | nop                     | nop                     | nop                     |
+Cycle:       36	|| addi $t4, $zero, 0x5    | nop                     | nop                     | nop                     | nop                     |
+Cycle:       37	|| addi $t4, $zero, 0x5    | nop                     | nop                     | nop                     | nop                     |
+Cycle:       38	|| HALT                    | addi $t4, $zero, 0x5    | nop                     | nop                     | nop                     |
+Cycle:       39	|| nop                     | HALT                    | addi $t4, $zero, 0x5    | nop                     | nop                     |
+Cycle:       40	|| nop                     | nop                     | HALT                    | addi $t4, $zero, 0x5    | nop                     |
+Cycle:       41	|| nop                     | nop                     | nop                     | HALT                    | addi $t4, $zero, 0x5    |
+Cycle:       42	|| nop                     | nop                     | nop                     | nop                     | HALT                    |

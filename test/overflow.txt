@@ -1,0 +1,25 @@
+
+./test/overflow.elf:     file format elf32-tradbigmips
+
+
+Disassembly of section .text:
+
+00000000 <.text>:
+   0:	2009ffff 	addi	t1,zero,-1
+   4:	00094842 	srl	t1,t1,0x1
+   8:	240b0002 	li	t3,2
+   c:	240cfeed 	li	t4,-275
+  10:	240d200c 	li	t5,8204
+  14:	240e0005 	li	t6,5
+  18:	3c010001 	lui	at,0x1
+  1c:	a42d8000 	sh	t5,-32768(at)
+  20:	3c010001 	lui	at,0x1
+  24:	a42e8002 	sh	t6,-32766(at)
+  28:	3c010001 	lui	at,0x1
+  2c:	a42c8004 	sh	t4,-32764(at)
+  30:	3c010001 	lui	at,0x1
+  34:	a42c8006 	sh	t4,-32762(at)
+  38:	01295820 	add	t3,t1,t1
+  3c:	240f0007 	li	t7,7
+  40:	feedfeed 	0xfeedfeed
+	...

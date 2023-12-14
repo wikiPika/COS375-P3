@@ -1,0 +1,94 @@
+Cycle:        0	|| lui $t0, 0x0            | nop                     | nop                     | nop                     | nop                     |
+Cycle:        1	|| lui $t0, 0x0            | nop                     | nop                     | nop                     | nop                     |
+Cycle:        2	|| lui $t0, 0x0            | nop                     | nop                     | nop                     | nop                     |
+Cycle:        3	|| lui $t0, 0x0            | nop                     | nop                     | nop                     | nop                     |
+Cycle:        4	|| lui $t0, 0x0            | nop                     | nop                     | nop                     | nop                     |
+Cycle:        5	|| lui $t0, 0x0            | nop                     | nop                     | nop                     | nop                     |
+Cycle:        6	|| addiu $t0, $t0, 0x68    | lui $t0, 0x0            | nop                     | nop                     | nop                     |
+Cycle:        7	|| lw $t1, 0($t0)          | addiu $t0, $t0, 0x68    | lui $t0, 0x0            | nop                     | nop                     |
+Cycle:        8	|| sw $t1, 4($t0)          | lw $t1, 0($t0)          | addiu $t0, $t0, 0x68    | lui $t0, 0x0            | nop                     |
+Cycle:        9	|| lw $t7, 8($t0)          | sw $t1, 4($t0)          | lw $t1, 0($t0)          | addiu $t0, $t0, 0x68    | lui $t0, 0x0            |
+Cycle:       10	|| lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          | addiu $t0, $t0, 0x68    |
+Cycle:       11	|| lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          | nop                     |
+Cycle:       12	|| lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          | nop                     |
+Cycle:       13	|| lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          | nop                     |
+Cycle:       14	|| lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          | nop                     |
+Cycle:       15	|| lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          | nop                     |
+Cycle:       16	|| lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          | nop                     |
+Cycle:       17	|| lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          | nop                     |
+Cycle:       18	|| lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          | nop                     |
+Cycle:       19	|| sw $t1, 4($t7)          | lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          | lw $t1, 0($t0)          |
+Cycle:       20	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | lw $t7, 8($t0)          | nop                     | sw $t1, 4($t0)          |
+Cycle:       21	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          | nop                     |
+Cycle:       22	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          | nop                     |
+Cycle:       23	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          | nop                     |
+Cycle:       24	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          | nop                     |
+Cycle:       25	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          | nop                     |
+Cycle:       26	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          | nop                     |
+Cycle:       27	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          | nop                     |
+Cycle:       28	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          | nop                     |
+Cycle:       29	|| lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          | nop                     |
+Cycle:       30	|| add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     | lw $t7, 8($t0)          |
+Cycle:       31	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     |
+Cycle:       32	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     |
+Cycle:       33	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     |
+Cycle:       34	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     |
+Cycle:       35	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     |
+Cycle:       36	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     |
+Cycle:       37	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     |
+Cycle:       38	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     |
+Cycle:       39	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | lw $t1, 0($t0)          | sw $t1, 4($t7)          | nop                     |
+Cycle:       40	|| sw $t1, 12($t0)         | add $t1, $t1, $t1       | nop                     | lw $t1, 0($t0)          | sw $t1, 4($t7)          |
+Cycle:       41	|| lhu $t1, 0($t0)         | sw $t1, 12($t0)         | add $t1, $t1, $t1       | nop                     | lw $t1, 0($t0)          |
+Cycle:       42	|| ori $t2, $t1, 0x0       | lhu $t1, 0($t0)         | sw $t1, 12($t0)         | add $t1, $t1, $t1       | nop                     |
+Cycle:       43	|| nop                     | ori $t2, $t1, 0x0       | lhu $t1, 0($t0)         | sw $t1, 12($t0)         | add $t1, $t1, $t1       |
+Cycle:       44	|| nop                     | ori $t2, $t1, 0x0       | nop                     | lhu $t1, 0($t0)         | sw $t1, 12($t0)         |
+Cycle:       45	|| nop                     | nop                     | ori $t2, $t1, 0x0       | nop                     | lhu $t1, 0($t0)         |
+Cycle:       46	|| nop                     | nop                     | nop                     | ori $t2, $t1, 0x0       | nop                     |
+Cycle:       47	|| nop                     | nop                     | nop                     | nop                     | ori $t2, $t1, 0x0       |
+Cycle:       48	|| nop                     | nop                     | nop                     | nop                     | nop                     |
+Cycle:       49	|| nop                     | nop                     | nop                     | nop                     | nop                     |
+Cycle:       50	|| nop                     | nop                     | nop                     | nop                     | nop                     |
+Cycle:       51	|| lhu $t1, 0($t0)         | nop                     | nop                     | nop                     | nop                     |
+Cycle:       52	|| ori $t1, $t2, 0x0       | lhu $t1, 0($t0)         | nop                     | nop                     | nop                     |
+Cycle:       53	|| lui $t0, 0x0            | ori $t1, $t2, 0x0       | lhu $t1, 0($t0)         | nop                     | nop                     |
+Cycle:       54	|| addiu $t0, $t0, 0x90    | lui $t0, 0x0            | ori $t1, $t2, 0x0       | lhu $t1, 0($t0)         | nop                     |
+Cycle:       55	|| addiu $t0, $t0, 0x90    | nop                     | lui $t0, 0x0            | ori $t1, $t2, 0x0       | lhu $t1, 0($t0)         |
+Cycle:       56	|| addiu $t0, $t0, 0x90    | nop                     | nop                     | lui $t0, 0x0            | ori $t1, $t2, 0x0       |
+Cycle:       57	|| addiu $t0, $t0, 0x90    | nop                     | nop                     | nop                     | lui $t0, 0x0            |
+Cycle:       58	|| addiu $t0, $t0, 0x90    | nop                     | nop                     | nop                     | nop                     |
+Cycle:       59	|| addiu $t0, $t0, 0x90    | nop                     | nop                     | nop                     | nop                     |
+Cycle:       60	|| nop                     | addiu $t0, $t0, 0x90    | nop                     | nop                     | nop                     |
+Cycle:       61	|| nop                     | nop                     | addiu $t0, $t0, 0x90    | nop                     | nop                     |
+Cycle:       62	|| nop                     | nop                     | nop                     | addiu $t0, $t0, 0x90    | nop                     |
+Cycle:       63	|| nop                     | nop                     | nop                     | nop                     | addiu $t0, $t0, 0x90    |
+Cycle:       64	|| nop                     | nop                     | nop                     | nop                     | nop                     |
+Cycle:       65	|| nop                     | nop                     | nop                     | nop                     | nop                     |
+Cycle:       66	|| nop                     | nop                     | nop                     | nop                     | nop                     |
+Cycle:       67	|| nop                     | nop                     | nop                     | nop                     | nop                     |
+Cycle:       68	|| nop                     | nop                     | nop                     | nop                     | nop                     |
+Cycle:       69	|| lbu $t1, 0($t0)         | nop                     | nop                     | nop                     | nop                     |
+Cycle:       70	|| lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     | nop                     | nop                     |
+Cycle:       71	|| lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     | nop                     |
+Cycle:       72	|| HALT                    | lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     |
+Cycle:       73	|| HALT                    | lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     |
+Cycle:       74	|| HALT                    | lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     |
+Cycle:       75	|| HALT                    | lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     |
+Cycle:       76	|| HALT                    | lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     |
+Cycle:       77	|| HALT                    | lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     |
+Cycle:       78	|| HALT                    | lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     |
+Cycle:       79	|| HALT                    | lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     |
+Cycle:       80	|| HALT                    | lhu $t0, 0($t1)         | lw $t1, 0($t0)          | lbu $t1, 0($t0)         | nop                     |
+Cycle:       81	|| HALT                    | lhu $t0, 0($t1)         | nop                     | lw $t1, 0($t0)          | lbu $t1, 0($t0)         |
+Cycle:       82	|| nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     | lw $t1, 0($t0)          |
+Cycle:       83	|| nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     |
+Cycle:       84	|| nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     |
+Cycle:       85	|| nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     |
+Cycle:       86	|| nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     |
+Cycle:       87	|| nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     |
+Cycle:       88	|| nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     |
+Cycle:       89	|| nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     |
+Cycle:       90	|| nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     |
+Cycle:       91	|| nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         | nop                     |
+Cycle:       92	|| nop                     | nop                     | nop                     | HALT                    | lhu $t0, 0($t1)         |
+Cycle:       93	|| nop                     | nop                     | nop                     | nop                     | HALT                    |

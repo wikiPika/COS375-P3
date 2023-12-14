@@ -1,0 +1,270 @@
+    if (stallDelay > 0 || icacheDelay > 0 || dcacheDelay > 0) {
+
+      // insert nop between USE operation and DEP operation
+      // only if I-cache miss or Stall though
+      // before: USE | DEP | A   | B   | C
+      // after:  USE | NOP | DEP | A   | B
+      pipeState.cycle = cycleCount;
+
+      if (dcacheDelay == 0) {
+        pipeState.wbInstr = pipeState.memInstr;
+        pipeState.memInstr = pipeState.exInstr;
+        pipeState.exInstr = pipeState.idInstr;
+        pipeState.idInstr = 0;
+
+        memAddresses[4] = memAddresses[3];
+        memAddresses[3] = memAddresses[2];
+        memAddresses[2] = memAddresses[1];
+        memAddresses[1] = -1;
+      }
+
+      if (stallDelay > 0)
+        stallDelay--;
+      if (icacheDelay > 0)
+        icacheDelay--;
+      if (dcacheDelay > 0)
+        dcacheDelay--;
+
+      cout << "mems " << memAddresses[0] << " | " << memAddresses[1] << " | "
+           << memAddresses[2] << " | " << memAddresses[3] << " | "
+           << memAddresses[4] << endl;
+      cout << "cycle " << cycleCount << " (" << stallDelay << " | "
+           << icacheDelay << " | " << dcacheDelay << ") " << endl
+           << endl;
+
+      count++;
+      cycleCount++;
+      continue;
+    }
+
+    Emulator::InstructionInfo info = emulator->executeInstruction();
+    pipeState.cycle = cycleCount; // get the execution cycle count
+
+    // shuffle pipeline
+    pipeState.wbInstr = pipeState.memInstr;
+    pipeState.memInstr = pipeState.exInstr;
+    pipeState.exInstr = pipeState.idInstr;
+    pipeState.idInstr = pipeState.ifInstr;
+    pipeState.ifInstr = info.instruction;
+
+    // check if instruction hits overflow exception
+    if (info.isOverflow) {
+      pipeState.wbInstr = pipeState.memInstr;
+      // what about mem?
+      pipeState.exInstr = 0;
+      pipeState.ifInstr = 0;
+      pipeState.idInstr = 0;
+    }
+
+    // check if invalid instruction and update pipeState
+    if (!info.isValid) {
+      pipeState.wbInstr = pipeState.memInstr;
+      pipeState.memInstr = pipeState.exInstr;
+      pipeState.ifInstr = 0;
+      pipeState.idInstr = 0;
+    }
+
+    // shuffle mem load/store addresses
+    if (info.isValid && (info.opcode == OP_LBU || info.opcode == OP_LHU ||
+                         info.opcode == OP_LW)) { // load
+      memAddresses.push_front(info.loadAddress);
+      cout << "memadd load " << info.loadAddress << endl;
+    } else if (info.isValid && (info.opcode == OP_SB || info.opcode == OP_SH ||
+                                info.opcode == OP_SW)) { // store
+      memAddresses.push_front(info.storeAddress);
+      cout << "memadd stor " << info.storeAddress << endl;
+    } else { // not load or store
+      memAddresses.push_front(-1);
+    }
+
+    cout << "mems " << memAddresses[0] << " | " << memAddresses[1] << " | "
+         << memAddresses[2] << " | " << memAddresses[3] << " | "
+         << memAddresses[4] << endl;
+    memAddresses.pop_back();
+
+    // handle iCache delay
+    icacheDelay +=
+        iCache->access(info.pc, CACHE_READ) ? 0 : iCache->config.missLatency;
+
+    if (icacheDelay > 0) {
+      cout << "instruction cache stalled pc " << info.pc << " cy " << cycleCount
+           << endl;
+    }
+
+    // handle dCache delays (in a multicycle style)
+    if (isLoad(pipeState.memInstr) && memAddresses[3] != -1) {
+      dcacheDelay += dCache->access(memAddresses[3], CACHE_READ)
+                         ? 0
+                         : dCache->config.missLatency;
+    }
+
+    if (isStore(pipeState.memInstr) && memAddresses[3] != -1) {
+      dcacheDelay += dCache->access(memAddresses[3], CACHE_WRITE)
+                         ? 0
+                         : dCache->config.missLatency;
+    }
+
+    if (dcacheDelay > 0) {
+      cout << "data cache miss addr " << memAddresses[3] << " cy " << cycleCount
+           << " ||| " << memAddresses[0] << " | " << memAddresses[1] << " | "
+           << memAddresses[2] << " | " << memAddresses[3] << " | "
+           << memAddresses[4] << endl;
+    }
+
+    /**
+     * cases for stall delay:
+     *
+     * load - op (ex. sub, add) = 1
+     * load - store             = 0 (forwarded)
+     * load - branch            = 2 (load obtains value after MEM, branch needs
+     * value during ID)
+     * load - smth - branch     = 1
+     *
+     * op - op                  = 0 (forwarded)
+     * op - store               = 0 (lines up fine)
+     * op - branch              = 1
+     * 
+     * store - op               = 0
+     * store - store            = 0
+     * store - branch           = 0
+     *
+     * check for dependency at each step
+     */
+
+    /**
+     * If current instruction is branch (D dependency on X):
+     *   If last instruction was op: insert 1
+     *   If last instruction was load: insert 2
+     * If current instruction is op (X dependency on M):
+     *   If last instruction was load: insert 1
+     */
+    
+    uint32_t use = pipeState.ifInstr;
+    uint32_t dep = pipeState.idInstr;
+    uint32_t dep2 = pipeState.exInstr;
+
+    if (isBranch(use)) {
+      if (isOp(dep)) {
+        cout << "op branch detected" << endl;
+        // op-branch
+        // note: all immediates use RT as target
+        //           all r-type use RD as target
+        //    branch operations use RS and RT
+
+        // check if last op target is branch RS or branch RT
+
+        uint32_t target;
+        uint32_t br_a;
+        uint32_t br_b;
+
+        if (isImm(dep)) {
+          target = rt(dep);
+        } else {
+          target = rd(dep);
+        }
+
+        br_a = rs(use);
+        br_b = rt(use);
+        cout << "a | b | target" << endl;
+        cout << br_a << " | " << br_b << " | " << target << endl;
+
+        if (br_a == target || br_b == target) {
+          cout << "op branch verified" << endl;
+          stallDelay = 1;
+        }
+      }
+
+      if (isLoad(dep)) {
+        cout << "load branch detected" << endl;
+        // load-branch
+        // if branch uses the load target we must stall
+        // load target is always rt
+        uint32_t target = rt(dep);
+        uint32_t br_a;
+        uint32_t br_b;
+
+        br_a = rs(use);
+        br_b = rt(use);
+
+        cout << "a | b | target" << endl;
+        cout << br_a << " | " << br_b << " | " << target << endl;
+
+        if (br_a == target || br_b == target) {
+          cout << "load branch verified" << endl;
+          stallDelay = 2;
+        }
+      }
+
+      if (isLoad(dep2)) {
+        cout << "load - smth - branch detected" << endl;
+        // load-smth-branch
+        // if branch uses the load target we must stall
+        // load target is always rt
+        uint32_t target = rt(dep2);
+        uint32_t br_a;
+        uint32_t br_b;
+
+        br_a = rs(use);
+        br_b = rt(use);
+
+        cout << "a | b | target" << endl;
+        cout << br_a << " | " << br_b << " | " << target << endl;
+
+        if (br_a == target || br_b == target) {
+          cout << "load - smth - branch verified" << endl;
+          if (stallDelay == 0) stallDelay = 1;
+          else {
+            cout << "load branch already exists (2 > 1)" << endl;
+          }
+        }
+      }
+    }
+
+    use = pipeState.idInstr;
+    dep = pipeState.exInstr;
+
+    if (isOp(use)) {
+      if (isLoad(dep)) {
+        cout << "load op detected" << endl;
+        // load-op
+        // if op uses the load target we must stall
+        // must discriminate between imm and r again (ugh)
+        uint32_t target = rt(dep);
+        uint32_t op_a;
+        uint32_t op_b;
+        uint32_t imm = isImm(use);
+
+        // i-type operations use RS as argument
+        // r-type operations use RS and RT as argument
+        op_a = rs(use);
+
+        if (!imm) {
+          op_b = rt(use);
+        }
+
+        cout << "a | b | target | t/f" << endl;
+        cout << op_a << " | " << op_b << " | " << target << " | " << imm << endl;
+
+        // if current op uses results from previous
+        if ((imm && op_a == target) ||
+            (!imm && (op_a == target || op_b == target))) {
+          cout << "load op verified" << endl;
+          stallDelay = 1;
+        }
+      }
+    }
+
+    // increments count and global count at end of operations
+
+    if (stallDelay > 0) {
+      cout << "cycle " << cycleCount << " (" << stallDelay << " | "
+           << icacheDelay << " | " << dcacheDelay << ") "
+           << "stall: " << stallDelay << endl
+           << endl;
+    } else
+      cout << "cycle " << cycleCount << " (" << stallDelay << " | "
+           << icacheDelay << " | " << dcacheDelay << ") " << info.pc << endl
+           << endl;
+
+    count++;
+    cycleCount++;

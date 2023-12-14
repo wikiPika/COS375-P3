@@ -33,3 +33,16 @@ bool isBranch(uint32_t target);
 bool isStore(uint32_t target);
 bool isOp(uint32_t target);
 bool isImm(uint32_t target);
+bool isRop(uint32_t target); 
+
+void ingestPipeline(uint32_t target);
+void ingestBuffer(uint32_t target);
+void dump();
+
+int op_branch(uint32_t use, uint32_t dep);
+int load_branch(uint32_t use, uint32_t dep);
+int load_op(uint32_t use, uint32_t dep);
+
+void printBuffer();
+void printCycle();
+void println(string x);
