@@ -1,3 +1,10 @@
+/**
+ * cache.cpp
+ * Implemented by Kevin Wang (kw6487)
+ * 
+ * Jackie Liu, Kevin Wang, Jack Zhang, Siddharth Vetrivel
+*/
+
 // Sample cache implementation with random hit return
 
 #include "cache.h"

@@ -1,3 +1,10 @@
+/**
+ * cycle.cpp
+ * Implemented by Jackie Liu (jl1536)
+ * 
+ * Jackie Liu, Kevin Wang, Jack Zhang, Siddharth Vetrivel
+*/
+
 #include <array>
 #include <iostream>
 #include <memory>

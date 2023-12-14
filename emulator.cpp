@@ -1,6 +1,9 @@
-//----------------------------------------------------------------------------//
-// REFERENCE SOLUTION                                                         //
-//----------------------------------------------------------------------------//
+/**
+ * emulator.cpp
+ * Implemented by Jack Zhang (jz4267), Siddharth Vetrivel (sv1014)
+ * 
+ * Jackie Liu, Kevin Wang, Jack Zhang, Siddharth Vetrivel
+*/
 
 #include "emulator.h"
 

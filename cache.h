@@ -1,3 +1,10 @@
+/**
+ * emulator.cpp
+ * Implemented by Kevin Wang (kw6487)
+ * 
+ * Jackie Liu, Kevin Wang, Jack Zhang, Siddharth Vetrivel
+*/
+
 #pragma once
 #include <inttypes.h>
 
@@ -35,8 +42,8 @@ class Cache {
     uint32_t hits, misses;
 
     uint32_t numSets; // number of rows in cache (numSets = cacheSize/ways/blockSize)
-    vector<vector<int>> tags; // the tags in the cache currently
-    vector<vector<int>> order; // for each row, stores 1, 2, 3 ... n (the order of most recent to least recent)
+    vector<vector<uint32_t>> tags; // the tags in the cache currently
+    vector<vector<uint32_t>> order; // for each row, stores 1, 2, 3 ... n (the order of most recent to least recent)
     vector<vector<bool>> valid; // whether each cell is valid
 
    public:
