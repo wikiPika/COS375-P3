@@ -87,6 +87,9 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
     int32_t signExtImm = signExt(immediate);
     uint32_t zeroExtImm = immediate;
 
+    int32_t a = regData.registers[rs];
+    uint32_t b = regData.registers[rt];
+
     uint32_t branchAddr = signExtImm << 2;
     uint32_t jumpAddr = (PC & 0xf0000000) ^ (address << 2);  // assumes PC += 4 just happened
 
@@ -108,8 +111,15 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
         case OP_ZERO:  // R-type instruction
             switch (funct) {
                 case FUN_ADD:
-                    regData.registers[rd] = regData.registers[rs] + regData.registers[rt];
-                    break;
+                    if(((a >= 0) && (b >= 0) && (a+b < 0)) || ((a < 0) && (b < 0) && (a+b >= 0))){
+                        info.isOverflow = true;
+                        PC = 0x8000;
+                        break;
+                    }
+                    else{
+                        regData.registers[rd] = regData.registers[rs] + regData.registers[rt];
+                        break;
+                    }
                 case FUN_ADDU:
                     regData.registers[rd] = regData.registers[rs] + regData.registers[rt];
                     break;
@@ -143,8 +153,15 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
                     regData.registers[rd] = regData.registers[rs] - regData.registers[rt];
                     break;
                 case FUN_SUBU:
-                    regData.registers[rd] = regData.registers[rs] - regData.registers[rt];
-                    break;
+                    if(((a >= 0) && (b < 0) && (a-b < 0)) || ((a < 0) && (b >= 0) && (a-b >= 0))){
+                        info.isOverflow = true;
+                        PC = 0x8000;
+                        break;
+                    }
+                    else{
+                        regData.registers[rd] = regData.registers[rs] - regData.registers[rt];
+                        break;
+                    }
                 default:
                     std::cerr << LOG_ERROR << "Illegal operation..." << std::endl;
                     info.isValid = false;
@@ -152,8 +169,15 @@ Emulator::InstructionInfo Emulator::executeInstruction() {
             break;
 
         case OP_ADDI:
-            regData.registers[rt] = regData.registers[rs] + signExtImm;
-            break;
+            if(((a >= 0) && (b >= 0) && (a+b < 0)) || ((a < 0) && (b < 0) && (a+b >= 0))){
+                info.isOverflow = true;
+                PC = 0x8000;
+                break;
+            }
+            else{
+                regData.registers[rt] = regData.registers[rs] + signExtImm;
+                break;
+            }
         case OP_ADDIU:
             regData.registers[rt] = regData.registers[rs] + signExtImm;
             break;

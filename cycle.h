@@ -33,5 +33,3 @@ bool isBranch(uint32_t target);
 bool isStore(uint32_t target);
 bool isOp(uint32_t target);
 bool isImm(uint32_t target);
-
-void processStall(const int& stall, const int& count, const PipeState& pipeState);

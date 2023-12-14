@@ -13,10 +13,12 @@ static Cache* iCache = nullptr;
 static Cache* dCache = nullptr;
 static std::string output;
 
+static PipeState pipeState = {0,};
 static uint32_t cycleCount;
 static uint32_t icacheDelay = 0; // cycle delays for icache misses
 static uint32_t dcacheDelay = 0; // cycle delays for dcache misses
 static uint32_t stallDelay = 0; // cycle delays for stalls
+static bool stalling = false;
 
 static std::deque<int> memAddresses;
 
@@ -36,60 +38,73 @@ Status initSimulator(CacheConfig& iCacheConfig, CacheConfig& dCacheConfig, Memor
     return SUCCESS;
 }
 
-// dep-use stall, cache stall
-// shuffles pipe and mem address buffer
-// by Jackie
-void processStall(const int& s, const int& c, const PipeState& p) {
-    int& stall = const_cast<int&>(s);
-    int& count = const_cast<int&>(c);
-    PipeState& pipeState = const_cast<PipeState&>(p);
-
-    stall--;
-
-    // insert nop between USE operation and DEP operation
-    // before: USE | DEP | A   | B   | C 
-    // after:  USE | NOP | DEP | A   | B
-    pipeState.wbInstr = pipeState.memInstr;
-    pipeState.memInstr = pipeState.exInstr;
-    pipeState.exInstr = pipeState.idInstr;
-    pipeState.idInstr = 0;
-
-    // cycle this as well
-    memAddresses.push_front(-1);
-    if (memAddresses.size() > 5) {
-        memAddresses.pop_back();
-    }
-
-    count++;
-    cycleCount++;
-}
-
 // run the emulator for a certain number of cycles
 // return SUCCESS if reaching desired cycles.
 // return HALT if the simulator halts on 0xfeedfeed
 Status runCycles(uint32_t cycles) {
     uint32_t count = 0;
     auto status = SUCCESS;
-    PipeState pipeState = {0,};
 
     while (cycles == 0 || count < cycles) {
         if (stallDelay > 0) {
-            processStall(stallDelay, count, pipeState);
-            continue;
+            stallDelay--;
+            stalling = true;
         }
 
         if (icacheDelay > 0) {
-            processStall(icacheDelay, count, pipeState);
-            continue;
+            icacheDelay--;
+            stalling = true;
         }
 
         if (dcacheDelay > 0) {
-            processStall(dcacheDelay, count, pipeState);
+            dcacheDelay--;
+            stalling = true;
+        }
+
+        if (stalling) {
+            stalling = false;
+
+            // insert nop between USE operation and DEP operation
+            // only if I-cache miss or Stall though
+            // before: USE | DEP | A   | B   | C 
+            // after:  USE | NOP | DEP | A   | B
+            if (dcacheDelay == 0) {
+                pipeState.cycle = cycleCount;
+                pipeState.wbInstr = pipeState.memInstr;
+                pipeState.memInstr = pipeState.exInstr;
+                pipeState.exInstr = pipeState.idInstr;
+                pipeState.idInstr = 0;
+            }
+
+            // cycle this as well
+            memAddresses.push_front(-1);
+            if (memAddresses.size() > 5) {
+                memAddresses.pop_back();
+            }
+
+            count++;
+            cycleCount++;
             continue;
         }
 
         Emulator::InstructionInfo info = emulator->executeInstruction();
         pipeState.cycle = cycleCount;  // get the execution cycle count
+
+        //check if instruction hits overflow exception
+        if(info.isOverflow){
+            pipeState.wbInstr = pipeState.memInstr;
+            pipeState.exInstr = 0;
+            pipeState.idInstr = 0;
+            pipeState.ifInstr = 0;
+        }
+
+        //check if invalid instruction and update pipeState
+        if(!info.isValid){
+            pipeState.wbInstr = pipeState.memInstr;
+            pipeState.memInstr = pipeState.exInstr;
+            pipeState.ifInstr = 0;
+            pipeState.idInstr = 0;
+        }
 
         // shuffle mem load/store addresses
         if (info.isValid && (info.opcode == OP_LBU || info.opcode == OP_LHU || info.opcode == OP_LW)) { // load
@@ -104,8 +119,6 @@ Status runCycles(uint32_t cycles) {
         if (memAddresses.size() > 5) {
             memAddresses.pop_back();
         }
-
-        
 
         // shuffle pipeline
         pipeState.wbInstr = pipeState.memInstr;
@@ -139,7 +152,6 @@ Status runCycles(uint32_t cycles) {
          * op - branch              = 1
          * 
          * check for dependency at each step
-         * by Jackie
         */
 
        /**
@@ -148,9 +160,9 @@ Status runCycles(uint32_t cycles) {
         *   If last instruction was load: insert 2
         * If current instruction is op (X dependency):
         *   If last instruction was load: insert 1
-        * by Jackie
        */
         
+
         if (isBranch(pipeState.ifInstr))
         {
             if (isOp(pipeState.idInstr)) {
@@ -254,8 +266,6 @@ Status finalizeSimulator() {
     dumpSimStats(stats, output);
     return SUCCESS;
 }
-
-// helper methods by Jackie
 
 uint32_t extract(uint32_t instruction, int start, int end) {
   int bitsToExtract = start - end + 1;

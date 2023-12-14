@@ -37,9 +37,6 @@ Cache::Cache(CacheConfig configParam, CacheDataType cacheType) : config(configPa
         row.resize(config.ways, false);
     }
 
-
-
-
     // Here you can initialize other cache-specific attributes
     // For instance, if you had cache tables or other structures, initialize them here
 }
@@ -80,6 +77,7 @@ bool Cache::access(uint32_t address, CacheOperation readWrite) {
                     order[index][j]++;
                 }
             }
+
             order[index][i] = 1;
         }
     }
@@ -121,8 +119,6 @@ bool Cache::access(uint32_t address, CacheOperation readWrite) {
             }
         }
     }
-
-
 
     // For simplicity, we're using a random boolean to simulate cache hit/miss
     // bool hit = distribution(generator) < 0.20;  // random 20% hit for a strange cache
