@@ -19,30 +19,3 @@ Status runTillHalt();
 
 // dump the state of the emulator
 Status finalizeSimulator();
-
-uint32_t extract(uint32_t instruction, int start, int end);
-uint32_t rs(uint32_t target);
-uint32_t rt(uint32_t target);
-uint32_t rd(uint32_t target);
-uint32_t opcode(uint32_t target);
-uint32_t funct(uint32_t target);
-
-// minus LUI because that's... immediate
-bool isLoad(uint32_t target);
-bool isBranch(uint32_t target);
-bool isStore(uint32_t target);
-bool isOp(uint32_t target);
-bool isImm(uint32_t target);
-bool isRop(uint32_t target); 
-
-void ingestPipeline(uint32_t target);
-void ingestBuffer(uint32_t target);
-void dump();
-
-int op_branch(uint32_t use, uint32_t dep);
-int load_branch(uint32_t use, uint32_t dep);
-int load_op(uint32_t use, uint32_t dep);
-
-void printBuffer();
-void printCycle();
-void println(string x);
