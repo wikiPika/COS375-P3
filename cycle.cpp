@@ -23,7 +23,8 @@ static uint32_t dStall = 0; // load-branches (they insert at d)
 static uint32_t xStall = 0; // load-op and op-branch (they insert at x)
 static uint32_t except = 0; // for exceptions, duh.
 
-static std::array<int, 5> memAddresses{0, 0, 0, 0, 0}; // for proper load/store tracking
+static std::array<int, 5> memAddresses{0, 0, 0, 0,
+                                       0}; // for proper load/store tracking
 
 /**
  * Cycle behavior entirely implemented by yours truly, Jackie Liu <3
@@ -131,10 +132,8 @@ Status runCycles(uint32_t cycles) {
      */
 
     Emulator::InstructionInfo info = emulator->executeInstruction();
-
     // Ingest new instruction into the pipeline
     if (info.isOverflow) {
-
       // If overflow, zero current and next two instructions
       except = 2;
       ingestPipeline(0);
@@ -144,7 +143,6 @@ Status runCycles(uint32_t cycles) {
       count++;
       continue;
     } else if (!info.isValid) {
-
       // If invalid, zero current and next instruction
       except = 1;
       ingestPipeline(0);
@@ -154,7 +152,6 @@ Status runCycles(uint32_t cycles) {
       count++;
       continue;
     } else
-
       // Else ingest the instruction as normal
       ingestPipeline(info.instruction);
 
@@ -196,9 +193,9 @@ Status runCycles(uint32_t cycles) {
 
     /**
      * Stall delays
-     * 
+     *
      * Four main types:
-     * 
+     *
      * op-branch          = 1 (D, X)
      * load-op            = 1 (D, X)
      * load-branch        = 2 (F, D)
